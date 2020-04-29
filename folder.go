@@ -74,3 +74,7 @@ func (f *Folder) Poll() (int, error) {
 	}
 	return response.StatusCode, nil
 }
+
+func (f *Folder) Test() string {
+	return "test"
+}
