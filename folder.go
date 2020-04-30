@@ -56,7 +56,7 @@ func (f *Folder) Create(name string) (*Folder, error) {
 			"mode": mode,
 		}),
 	}
-	r, err := f.Jenkins.Requester.Post(f.Base()+"/createItem", nil, f.Raw, data)
+	r, err := f.Jenkins.Requester.Post(f.parentBase()+"/createItem", nil, f.Raw, data)
 	if err != nil {
 		return nil, err
 	}
@@ -73,8 +73,4 @@ func (f *Folder) Poll() (int, error) {
 		return 0, err
 	}
 	return response.StatusCode, nil
-}
-
-func (f *Folder) Test() string {
-	return "test"
 }
