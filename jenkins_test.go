@@ -14,9 +14,14 @@ var (
 	queueID int64
 )
 
-func TestInit(t *testing.T) {
+func gojenkinsInit() error {
 	jenkins = CreateJenkins(nil, "http://localhost:8080", "admin", "admin")
 	_, err := jenkins.Init()
+	return err
+}
+
+func TestInit(t *testing.T) {
+	err := gojenkinsInit()
 	assert.Nil(t, err, "Jenkins Initialization should not fail")
 }
 
@@ -36,7 +41,6 @@ func TestCreateJobs(t *testing.T) {
 	assert.Equal(t, "Some Job Description", job2.GetDescription())
 	assert.Equal(t, job2ID, job2.GetName())
 }
-
 
 func TestCreateNodes(t *testing.T) {
 
@@ -213,8 +217,13 @@ func TestGetSingleView(t *testing.T) {
 }
 
 func TestCreateFolder(t *testing.T) {
+
+	if jenkins == nil {
+		gojenkinsInit()
+	}
 	folder1ID := "folder1_test"
 	folder2ID := "folder2_test"
+	folder3ID := "folder3_test"
 
 	folder1, err := jenkins.CreateFolder(folder1ID)
 	assert.Nil(t, err)
@@ -225,6 +234,17 @@ func TestCreateFolder(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, folder2)
 	assert.Equal(t, folder2ID, folder2.GetName())
+
+	folder3, err := folder2.Create(folder3ID)
+	assert.Nil(t, err)
+	assert.NotNil(t, folder3)
+	assert.Equal(t, folder3ID, folder3.GetName())
+
+	//test that folder3 is a child of folder2
+	folder3_copy, err := jenkins.GetFolder(folder3ID, folder1ID, folder2ID)
+	assert.Nil(t, err)
+	assert.NotNil(t, folder3_copy)
+	assert.Equal(t, folder3ID, folder3_copy.GetName())
 }
 
 func TestCreateJobInFolder(t *testing.T) {

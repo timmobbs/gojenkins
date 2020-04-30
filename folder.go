@@ -16,6 +16,7 @@ package gojenkins
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -56,13 +57,13 @@ func (f *Folder) Create(name string) (*Folder, error) {
 			"mode": mode,
 		}),
 	}
-	r, err := f.Jenkins.Requester.Post(f.Base()+"/createItem", nil, f.Raw, data)
+	r, err := f.Jenkins.Requester.Post(f.Base+"/createItem", nil, f.Raw, data)
 	if err != nil {
 		return nil, err
 	}
 	if r.StatusCode == 200 {
 		f.Poll()
-		return f, nil
+		return f.GetChildFolder(name)
 	}
 	return nil, errors.New(strconv.Itoa(r.StatusCode))
 }
@@ -75,6 +76,14 @@ func (f *Folder) Poll() (int, error) {
 	return response.StatusCode, nil
 }
 
-func (f *Folder) Test() string {
-	return "test"
+func (f *Folder) GetChildFolder(id string) (*Folder, error) {
+	folder := Folder{Jenkins: f.Jenkins, Raw: new(FolderResponse), Base: f.Base + "/job/" + id}
+	status, err := folder.Poll()
+	if err != nil {
+		return nil, fmt.Errorf("trouble polling folder: %v", err)
+	}
+	if status == 200 {
+		return &folder, nil
+	}
+	return nil, errors.New(strconv.Itoa(status))
 }
